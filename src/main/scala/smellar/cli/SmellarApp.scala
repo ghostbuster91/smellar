@@ -1,16 +1,16 @@
-package smiffer.cli
+package smellar.cli
 
 import cats.data.Validated
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.syntax.all.*
 import com.monovore.decline.{Command, Opts}
 import coursier.Repository
-import smiffer.*
+import smellar.*
 
-object SmifferApp extends IOApp:
+object SmellarApp extends IOApp:
 
   def run(args: List[String]): IO[ExitCode] =
-    val command = Command("smiffer", "Inspect Smithy models published as Maven JARs")(
+    val command = Command("smellar", "Inspect Smithy models published as Maven JARs")(
       subcommands <+> versionFlag
     )
     command.parse(args, sys.env) match
@@ -64,12 +64,12 @@ object SmifferApp extends IOApp:
       Opts.flag("include-prelude", "Include Smithy's own prelude shapes").orFalse
     ).mapN(Scope.apply)
 
-  /** `-r` values on top of `SMIFFER_REPOSITORIES`, so a private Artifactory can be configured once. */
+  /** `-r` values on top of `SMELLAR_REPOSITORIES`, so a private Artifactory can be configured once. */
   private def repositories: Opts[List[Repository]] =
     Opts
       .options[String](
         "repository",
-        "Extra Maven repository URL (repeatable), appended to $SMIFFER_REPOSITORIES",
+        "Extra Maven repository URL (repeatable), appended to $SMELLAR_REPOSITORIES",
         short = "r",
         metavar = "url"
       )
@@ -78,7 +78,7 @@ object SmifferApp extends IOApp:
         def validate(where: String)(raw: String) =
           Repositories.parse(raw).leftMap(why => s"Invalid $where: $why").toValidatedNel
         (
-          Repositories.fromEnv(sys.env).traverse(validate("SMIFFER_REPOSITORIES entry")),
+          Repositories.fromEnv(sys.env).traverse(validate("SMELLAR_REPOSITORIES entry")),
           flags.traverse(validate("--repository"))
         ).mapN(Repositories.effective)
       }
@@ -175,10 +175,10 @@ object SmifferApp extends IOApp:
     */
   private def runWith(logger: Log)(body: IO[Unit]): IO[ExitCode] =
     body.as(ExitCode.Success).handleErrorWith {
-      case e: SmifferError =>
+      case e: SmellarError =>
         IO.blocking(System.err.println(e.getMessage)).as(ExitCode.Error)
       case e =>
         val detail = Option(e.getMessage).getOrElse("(no message)")
-        IO.blocking(System.err.println(s"smiffer: ${e.getClass.getSimpleName}: $detail")) *>
+        IO.blocking(System.err.println(s"smellar: ${e.getClass.getSimpleName}: $detail")) *>
           logger.debugTrace(e).as(ExitCode.Error)
     }

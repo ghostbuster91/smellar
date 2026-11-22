@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 class PreludeTest extends munit.FunSuite:
 
@@ -7,7 +7,7 @@ class PreludeTest extends munit.FunSuite:
   }
 
   // These namespaces are published as their own artifacts. Counting them as prelude made
-  // `smiffer namespaces-external software.amazon.smithy:smithy-waiters:latest` report that the
+  // `smellar namespaces-external software.amazon.smithy:smithy-waiters:latest` report that the
   // artifact contained no models at all.
   test("separately-published smithy.* trait packages are not the prelude") {
     assert(!Prelude.isPrelude("smithy.waiters"))

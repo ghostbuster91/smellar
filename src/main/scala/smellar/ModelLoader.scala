@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.{IO, Resource}
 import cats.syntax.all.*
@@ -65,9 +65,9 @@ object ModelLoader:
       errors = events.filter(_.getSeverity == Severity.ERROR)
       _     <- events.traverse_(e => log.debug(render(e)))
       model <- result.getResult.toScala match
-                 case None        => IO.raiseError(SmifferError.ModelBroken(source, errors.map(render)))
+                 case None        => IO.raiseError(SmellarError.ModelBroken(source, errors.map(render)))
                  case Some(model) => IO.pure(model)
-      _     <- IO.raiseUnless(definesAnything(model))(SmifferError.NoModelsFound(source))
+      _     <- IO.raiseUnless(definesAnything(model))(SmellarError.NoModelsFound(source))
       // A model with errors still answers most lookups, so serve it — but never silently.
       _     <- log.warn(s"$source has ${errors.size} validation error(s); re-run with --debug to see them")
                  .whenA(errors.nonEmpty)

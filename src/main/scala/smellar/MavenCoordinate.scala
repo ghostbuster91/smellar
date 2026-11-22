@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.IO
 import coursier.{Dependency, Module, ModuleName, Organization, Repository, VersionConstraint, Versions}
@@ -19,7 +19,7 @@ final case class MavenCoordinate(group: String, artifact: String, version: Strin
         val release = Versions().withModule(toModule).addRepositories(extraRepositories*).run().release0.asString
         if release.nonEmpty then copy(version = release)
         else
-          throw SmifferError.CoordinateNotFound(
+          throw SmellarError.CoordinateNotFound(
             this,
             RuntimeException(s"No versions found for '$group:$artifact'")
           )

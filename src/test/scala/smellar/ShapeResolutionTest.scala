@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import software.amazon.smithy.model.Model
 
@@ -68,7 +68,7 @@ class ShapeResolutionTest extends munit.FunSuite:
 
   test("a bare name present in two namespaces lists the candidates instead of guessing") {
     ShapeQuery.resolve(loaded, "Shared", everything) match
-      case Left(SmifferError.AmbiguousShape(_, candidates)) =>
+      case Left(SmellarError.AmbiguousShape(_, candidates)) =>
         assertEquals(candidates, List("com.acme.other#Shared", "com.acme.orders#Shared").sorted)
       case other => fail(s"expected an ambiguity error, got $other")
   }
@@ -93,14 +93,14 @@ class ShapeResolutionTest extends munit.FunSuite:
   // class name rather than an explanation of the format.
   test("a malformed shape ID is reported as a shape ID problem") {
     ShapeQuery.resolve(loaded, "bad ns#!!", everything) match
-      case Left(e: SmifferError.InvalidShapeId) =>
+      case Left(e: SmellarError.InvalidShapeId) =>
         assert(e.getMessage.contains("namespace#Name"), e.getMessage)
       case other => fail(s"expected InvalidShapeId, got $other")
   }
 
   test("an unknown shape suggests a near match") {
     ShapeQuery.resolve(loaded, "com.acme.orders#Ordr", everything) match
-      case Left(SmifferError.ShapeNotFound(_, _, near)) =>
+      case Left(SmellarError.ShapeNotFound(_, _, near)) =>
         assertEquals(near, List("com.acme.orders#Order"))
       case other => fail(s"expected ShapeNotFound with a suggestion, got $other")
   }
@@ -126,7 +126,7 @@ class ShapeResolutionTest extends munit.FunSuite:
 
   test("an unknown namespace suggests a near match") {
     ShapeQuery.inNamespace(loaded, "com.acme.order", everything) match
-      case Left(SmifferError.NamespaceNotFound(_, _, near)) => assert(near.contains("com.acme.orders"), near)
+      case Left(SmellarError.NamespaceNotFound(_, _, near)) => assert(near.contains("com.acme.orders"), near)
       case other                                            => fail(s"expected NamespaceNotFound, got $other")
   }
 

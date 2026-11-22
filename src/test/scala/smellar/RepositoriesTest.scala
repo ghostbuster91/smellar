@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import coursier.MavenRepository
 
@@ -23,7 +23,7 @@ class RepositoriesTest extends munit.FunSuite:
   }
 
   test("env var splits on commas and whitespace, ignoring blanks") {
-    val env = Map("SMIFFER_REPOSITORIES" -> "https://a.example/maven, https://b.example/maven,,")
+    val env = Map("SMELLAR_REPOSITORIES" -> "https://a.example/maven, https://b.example/maven,,")
     assertEquals(Repositories.fromEnv(env), List("https://a.example/maven", "https://b.example/maven"))
   }
 

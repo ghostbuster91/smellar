@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 /** Smithy's built-in prelude namespace.
   *

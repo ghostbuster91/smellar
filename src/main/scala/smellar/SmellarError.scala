@@ -1,14 +1,14 @@
-package smiffer
+package smellar
 
 /** Errors that are the user's to fix — reported as a plain message, never a stack trace. */
-sealed trait SmifferError extends Throwable
+sealed trait SmellarError extends Throwable
 
-object SmifferError:
+object SmellarError:
   final case class CoordinateNotFound(
       coord: MavenCoordinate,
       cause: Throwable,
       suggestions: List[String] = Nil
-  ) extends SmifferError:
+  ) extends SmellarError:
     override def getMessage: String =
       val base =
         if suggestions.isEmpty then
@@ -30,52 +30,52 @@ object SmifferError:
 
     override def getCause: Throwable = cause
 
-  final case class NoModelsFound(source: String) extends SmifferError:
+  final case class NoModelsFound(source: String) extends SmellarError:
     override def getMessage: String =
       s"No Smithy models found in $source. A Smithy model JAR carries its models under " +
         "'META-INF/smithy/' with a 'manifest' file listing them."
 
-  final case class ModelBroken(source: String, events: List[String]) extends SmifferError:
+  final case class ModelBroken(source: String, events: List[String]) extends SmellarError:
     override def getMessage: String =
       s"The Smithy model in $source could not be assembled:\n" + events.map(e => s"  $e").mkString("\n")
 
   final case class ShapeNotFound(query: String, source: String, nearMatches: List[String])
-      extends SmifferError:
+      extends SmellarError:
     override def getMessage: String =
       val base = s"Shape '$query' not found in $source."
       if nearMatches.isEmpty then
-        s"$base\nUse 'smiffer namespaces' to see what the model defines, or 'smiffer search' to look by name."
+        s"$base\nUse 'smellar namespaces' to see what the model defines, or 'smellar search' to look by name."
       else s"$base\n\nDid you mean?\n" + nearMatches.map(m => s"  $m").mkString("\n")
 
-  final case class InvalidShapeId(raw: String, reason: String) extends SmifferError:
+  final case class InvalidShapeId(raw: String, reason: String) extends SmellarError:
     override def getMessage: String =
       s"'$raw' is not a valid shape ID: $reason\n" +
         "A shape ID looks like 'namespace#Name' (for example 'com.acme.orders#Order'); " +
         "a bare 'Name' works too."
 
-  final case class AmbiguousShape(query: String, candidates: List[String]) extends SmifferError:
+  final case class AmbiguousShape(query: String, candidates: List[String]) extends SmellarError:
     override def getMessage: String =
       s"'$query' is ambiguous — it matches several namespaces. Qualify it as 'namespace#Name':\n" +
         candidates.map(c => s"  $c").mkString("\n")
 
   final case class NamespaceNotFound(namespace: String, source: String, nearMatches: List[String])
-      extends SmifferError:
+      extends SmellarError:
     override def getMessage: String =
       val base = s"No shapes found in namespace '$namespace' in $source."
-      if nearMatches.isEmpty then s"$base\nUse 'smiffer namespaces' to list the namespaces that exist."
+      if nearMatches.isEmpty then s"$base\nUse 'smellar namespaces' to list the namespaces that exist."
       else s"$base\n\nDid you mean?\n" + nearMatches.map(m => s"  $m").mkString("\n")
 
-  final case class NoProject(searchedFrom: String) extends SmifferError:
+  final case class NoProject(searchedFrom: String) extends SmellarError:
     override def getMessage: String =
       s"No 'smithy-build.json' found in '$searchedFrom' or any parent directory.\n" +
         "Run the project-aware commands from a Smithy project, or name a coordinate explicitly " +
-        "with the '-external' variants (e.g. 'smiffer get-external group:artifact:version com.acme#User')."
+        "with the '-external' variants (e.g. 'smellar get-external group:artifact:version com.acme#User')."
 
-  final case class ProjectHasNoDependencies(configPath: String) extends SmifferError:
+  final case class ProjectHasNoDependencies(configPath: String) extends SmellarError:
     override def getMessage: String =
       s"'$configPath' declares no 'maven.dependencies', so there are no model JARs to inspect."
 
-  final case class MalformedProjectConfig(configPath: String, cause: Throwable) extends SmifferError:
+  final case class MalformedProjectConfig(configPath: String, cause: Throwable) extends SmellarError:
     override def getMessage: String =
       s"Could not read '$configPath': ${Option(cause.getMessage).getOrElse(cause.getClass.getName)}"
     override def getCause: Throwable = cause

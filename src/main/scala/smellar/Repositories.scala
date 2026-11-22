@@ -1,11 +1,11 @@
-package smiffer
+package smellar
 
 import coursier.{MavenRepository, Repository}
 
 object Repositories:
-  /** Repository URLs from `SMIFFER_REPOSITORIES` (comma or whitespace separated). */
+  /** Repository URLs from `SMELLAR_REPOSITORIES` (comma or whitespace separated). */
   def fromEnv(env: Map[String, String]): List[String] =
-    env.get("SMIFFER_REPOSITORIES").toList.flatMap(_.split("[,\\s]+").toList).map(_.trim).filter(_.nonEmpty)
+    env.get("SMELLAR_REPOSITORIES").toList.flatMap(_.split("[,\\s]+").toList).map(_.trim).filter(_.nonEmpty)
 
   def parse(raw: String): Either[String, MavenRepository] =
     val trimmed = raw.trim

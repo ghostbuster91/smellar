@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 class MavenCoordinateTest extends munit.FunSuite:
 

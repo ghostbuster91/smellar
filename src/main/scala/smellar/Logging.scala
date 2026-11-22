@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.IO
 
@@ -13,9 +13,9 @@ object LogLevel:
       case "debug"   => Some(Debug)
       case _         => None
 
-  /** `SMIFFER_LOG=verbose|debug` turns on diagnostics without a flag. `--verbose`/`--debug` win. */
+  /** `SMELLAR_LOG=verbose|debug` turns on diagnostics without a flag. `--verbose`/`--debug` win. */
   def fromEnv(env: Map[String, String]): LogLevel =
-    env.get("SMIFFER_LOG").flatMap(parse).getOrElse(Off)
+    env.get("SMELLAR_LOG").flatMap(parse).getOrElse(Off)
 
 /** Diagnostics go to stderr; stdout carries only the payload, so it stays safe to pipe. */
 final class Log(level: LogLevel):
@@ -29,7 +29,7 @@ final class Log(level: LogLevel):
     if enabled(LogLevel.Debug) then IO.blocking(t.printStackTrace()) else IO.unit
 
   private def emit(min: LogLevel, message: => String): IO[Unit] =
-    if enabled(min) then IO.blocking(System.err.println(s"[smiffer] $message")) else IO.unit
+    if enabled(min) then IO.blocking(System.err.println(s"[smellar] $message")) else IO.unit
 
 object Log:
   val off: Log = Log(LogLevel.Off)

@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.unsafe.implicits.global
 
@@ -9,7 +9,7 @@ class SmithyProjectTest extends munit.FunSuite:
   private given Log = Log.off
 
   private val tempRoot = FunFixture[Path](
-    setup = _ => Files.createTempDirectory("smiffer-project-test"),
+    setup = _ => Files.createTempDirectory("smellar-project-test"),
     teardown = dir =>
       Files
         .walk(dir)
@@ -30,7 +30,7 @@ class SmithyProjectTest extends munit.FunSuite:
   }
 
   tempRoot.test("reports a missing config rather than silently inspecting nothing") { root =>
-    val error = intercept[SmifferError.NoProject](SmithyProject.find(root).unsafeRunSync())
+    val error = intercept[SmellarError.NoProject](SmithyProject.find(root).unsafeRunSync())
     assert(error.getMessage.contains("smithy-build.json"), error.getMessage)
   }
 
@@ -55,7 +55,7 @@ class SmithyProjectTest extends munit.FunSuite:
 
   tempRoot.test("a config with no maven block has nothing to inspect") { root =>
     val config = write(root, """{"version": "1.0"}""")
-    val error  = intercept[SmifferError.ProjectHasNoDependencies](SmithyProject.load(config).unsafeRunSync())
+    val error  = intercept[SmellarError.ProjectHasNoDependencies](SmithyProject.load(config).unsafeRunSync())
     assert(error.getMessage.contains("maven.dependencies"), error.getMessage)
   }
 
@@ -64,12 +64,12 @@ class SmithyProjectTest extends munit.FunSuite:
       root,
       """{"version": "1.0", "maven": {"dependencies": ["com.acme:acme-model"]}}"""
     )
-    val error = intercept[SmifferError.MalformedProjectConfig](SmithyProject.load(config).unsafeRunSync())
+    val error = intercept[SmellarError.MalformedProjectConfig](SmithyProject.load(config).unsafeRunSync())
     assert(error.getMessage.contains("com.acme:acme-model"), error.getMessage)
   }
 
   tempRoot.test("unparseable JSON names the file instead of leaking a parser exception") { root =>
     val config = write(root, """{"version": "1.0",""")
-    val error  = intercept[SmifferError.MalformedProjectConfig](SmithyProject.load(config).unsafeRunSync())
+    val error  = intercept[SmellarError.MalformedProjectConfig](SmithyProject.load(config).unsafeRunSync())
     assert(error.getMessage.contains("smithy-build.json"), error.getMessage)
   }

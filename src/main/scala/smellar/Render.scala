@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import software.amazon.smithy.model.Model
 import software.amazon.smithy.model.node.Node

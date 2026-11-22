@@ -1,12 +1,12 @@
 import sbtassembly.MergeStrategy
 
 ThisBuild / organization := "io.github.ghostbuster91"
-ThisBuild / version      := sys.env.getOrElse("SMIFFER_VERSION", "0.1.0-SNAPSHOT").stripPrefix("v")
+ThisBuild / version      := sys.env.getOrElse("SMELLAR_VERSION", "0.1.0-SNAPSHOT").stripPrefix("v")
 ThisBuild / scalaVersion := "3.9.0"
 
-lazy val smiffer = (project in file("."))
+lazy val smellar = (project in file("."))
   .settings(
-    name := "smiffer",
+    name := "smellar",
     javacOptions ++= Seq("--release", "21"),
     scalacOptions ++= Seq(
       "-deprecation",
@@ -30,14 +30,14 @@ lazy val smiffer = (project in file("."))
       "org.slf4j"               % "slf4j-nop"      % "2.0.20",
       "org.scalameta"          %% "munit"          % "1.3.6" % Test
     ),
-    Compile / mainClass := Some("smiffer.cli.SmifferApp"),
+    Compile / mainClass := Some("smellar.cli.SmellarApp"),
     Compile / sourceGenerators += Def.task {
-      val out = (Compile / sourceManaged).value / "smiffer" / "cli" / "BuildInfo.scala"
+      val out = (Compile / sourceManaged).value / "smellar" / "cli" / "BuildInfo.scala"
       val safe = version.value.replace("\\", "\\\\").replace("\"", "\\\"").replaceAll("[\r\n]", "")
       java.nio.file.Files.createDirectories(out.toPath.getParent)
       java.nio.file.Files.writeString(
         out.toPath,
-        s"""package smiffer.cli
+        s"""package smellar.cli
            |private[cli] object BuildInfo:
            |  val version = "$safe"
            |""".stripMargin
@@ -56,8 +56,8 @@ lazy val smiffer = (project in file("."))
         val base = (assembly / assemblyMergeStrategy).value
         base(other)
     },
-    assembly / assemblyJarName := "smiffer.jar",
-    assembly / mainClass       := Some("smiffer.cli.SmifferApp")
+    assembly / assemblyJarName := "smellar.jar",
+    assembly / mainClass       := Some("smellar.cli.SmellarApp")
   )
 
 def isSignature(parts: Seq[String]): Boolean =

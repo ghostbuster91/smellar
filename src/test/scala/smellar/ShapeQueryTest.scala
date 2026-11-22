@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 class ShapeQueryTest extends munit.FunSuite:
 

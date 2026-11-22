@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.IO
 import cats.syntax.all.*
@@ -48,7 +48,7 @@ object CoursierClient:
       // so a typo'd artifact name gets a "did you mean" rather than just a wall of tried URLs.
       coords.headOption match
         case Some(head) =>
-          suggest(head, repositories).flatMap(s => IO.raiseError(SmifferError.CoordinateNotFound(head, e, s)))
+          suggest(head, repositories).flatMap(s => IO.raiseError(SmellarError.CoordinateNotFound(head, e, s)))
         case None => IO.raiseError(e)
     }
 
@@ -64,7 +64,7 @@ object CoursierClient:
           .sortBy(d => s"${d.module.organization.value}:${d.module.name.value}:${d.versionConstraint.asString}")
         ResolvedDeps(coord.render, deps)
       }.handleErrorWith { case e: coursier.error.CoursierError =>
-        suggest(coord, repositories).flatMap(s => IO.raiseError(SmifferError.CoordinateNotFound(coord, e, s)))
+        suggest(coord, repositories).flatMap(s => IO.raiseError(SmellarError.CoordinateNotFound(coord, e, s)))
       }
 
   /** Nearby artifact names for a coordinate that did not resolve. Best-effort: a failure here must

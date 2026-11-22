@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.IO
 import software.amazon.smithy.build.model.SmithyBuildConfig
@@ -28,13 +28,13 @@ object SmithyProject:
         .find(Files.isRegularFile(_))
     }.flatMap {
       case Some(found) => IO.pure(found)
-      case None        => IO.raiseError(SmifferError.NoProject(start.toAbsolutePath.normalize.toString))
+      case None        => IO.raiseError(SmellarError.NoProject(start.toAbsolutePath.normalize.toString))
     }
 
   def load(configPath: Path)(using log: Log): IO[SmithyProject] =
     IO.blocking(SmithyBuildConfig.load(configPath))
-      .adaptError { case e if !e.isInstanceOf[SmifferError] =>
-        SmifferError.MalformedProjectConfig(configPath.toString, e)
+      .adaptError { case e if !e.isInstanceOf[SmellarError] =>
+        SmellarError.MalformedProjectConfig(configPath.toString, e)
       }
       .flatMap { config =>
         val maven = config.getMaven.toScala
@@ -47,12 +47,12 @@ object SmithyProject:
         parseAll(rawDeps) match
           case Left((entry, why)) =>
             IO.raiseError(
-              SmifferError.MalformedProjectConfig(
+              SmellarError.MalformedProjectConfig(
                 configPath.toString,
                 RuntimeException(s"maven.dependencies entry '$entry': $why")
               )
             )
-          case Right(Nil) => IO.raiseError(SmifferError.ProjectHasNoDependencies(configPath.toString))
+          case Right(Nil) => IO.raiseError(SmellarError.ProjectHasNoDependencies(configPath.toString))
           case Right(deps) =>
             log.debug(
               s"$configPath declares ${deps.size} dependencies" +

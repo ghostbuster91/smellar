@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import software.amazon.smithy.model.neighbor.Walker
 import software.amazon.smithy.model.shapes.{Shape, ShapeId, ShapeType}
@@ -42,13 +42,13 @@ object ShapeQuery:
   /** Shapes declared in `namespace`, sorted with services first — a service is the entry point of a
     * model, so it is what you want to see at the top of a listing.
     */
-  def inNamespace(loaded: LoadedModel, namespace: String, scope: Scope): Either[SmifferError, List[Shape]] =
+  def inNamespace(loaded: LoadedModel, namespace: String, scope: Scope): Either[SmellarError, List[Shape]] =
     val all   = visibleShapes(loaded, scope)
     val found = all.filter(_.getId.getNamespace == namespace)
     if found.nonEmpty then Right(found.sortBy(s => (typeRank(s.getType), s.getId.getName)))
     else
       val near = all.map(_.getId.getNamespace).distinct.filter(ns => isNear(namespace, ns)).sorted.take(5)
-      Left(SmifferError.NamespaceNotFound(namespace, loaded.label, near))
+      Left(SmellarError.NamespaceNotFound(namespace, loaded.label, near))
 
   /** Case-insensitive substring search over shape names, or over full shape IDs when the query
     * looks like one (contains `#` or a dot).
@@ -68,7 +68,7 @@ object ShapeQuery:
     * every namespace in scope, which is what makes the tool usable without knowing the namespace
     * up front — but an ambiguous bare name is an error rather than a silent pick.
     */
-  def resolve(loaded: LoadedModel, query: String, scope: Scope): Either[SmifferError, Shape] =
+  def resolve(loaded: LoadedModel, query: String, scope: Scope): Either[SmellarError, Shape] =
     val candidates = visibleShapes(loaded, scope)
     if query.contains('#') then
       for
@@ -84,7 +84,7 @@ object ShapeQuery:
       candidates.filter(_.getId.getName.equalsIgnoreCase(bare)) match
         case single :: Nil => Right(single)
         case Nil           => Left(notFound(loaded, bare, candidates))
-        case many          => Left(SmifferError.AmbiguousShape(bare, many.map(_.getId.toString).sorted))
+        case many          => Left(SmellarError.AmbiguousShape(bare, many.map(_.getId.toString).sorted))
 
   /** The shape plus everything it transitively references — members' targets, a service's
     * operations, those operations' inputs and outputs, and so on.
@@ -102,22 +102,22 @@ object ShapeQuery:
       .sortBy(s => (s.getId.getNamespace, typeRank(s.getType), s.getId.getName))
 
   /** Smithy throws on a malformed ID; turn that into a message that explains the format. */
-  private def parseShapeId(raw: String): Either[SmifferError, ShapeId] =
+  private def parseShapeId(raw: String): Either[SmellarError, ShapeId] =
     try Right(ShapeId.from(raw))
     catch
       case e: IllegalArgumentException =>
-        Left(SmifferError.InvalidShapeId(raw, Option(e.getMessage).getOrElse(e.getClass.getSimpleName)))
+        Left(SmellarError.InvalidShapeId(raw, Option(e.getMessage).getOrElse(e.getClass.getSimpleName)))
 
-  private def containerIfMember(loaded: LoadedModel, shape: Shape): Either[SmifferError, Shape] =
+  private def containerIfMember(loaded: LoadedModel, shape: Shape): Either[SmellarError, Shape] =
     shape.asMemberShape.toScala match
       case None => Right(shape)
       case Some(member) =>
         loaded.model
           .getShape(member.getContainer)
           .toScala
-          .toRight(SmifferError.ShapeNotFound(member.getContainer.toString, loaded.label, Nil))
+          .toRight(SmellarError.ShapeNotFound(member.getContainer.toString, loaded.label, Nil))
 
-  private def notFound(loaded: LoadedModel, query: String, candidates: List[Shape]): SmifferError =
+  private def notFound(loaded: LoadedModel, query: String, candidates: List[Shape]): SmellarError =
     val bare = query.split("#").lastOption.getOrElse(query)
     val near = candidates
       .map(_.getId)
@@ -125,7 +125,7 @@ object ShapeQuery:
       .map(_.toString)
       .sorted
       .take(5)
-    SmifferError.ShapeNotFound(query, loaded.label, near)
+    SmellarError.ShapeNotFound(query, loaded.label, near)
 
   /** Cheap "did you mean": a shared prefix, a substring either way, or one typo apart. */
   private def isNear(query: String, candidate: String): Boolean =
@@ -148,7 +148,7 @@ object ShapeQuery:
       prev(b.length) <= max
 
   /** Exact match first, then prefix match, then shorter names — so `User` beats `UserSummary`. */
-  private[smiffer] def rankKey(loweredQuery: String, name: String): (Int, Int, Int, String) =
+  private[smellar] def rankKey(loweredQuery: String, name: String): (Int, Int, Int, String) =
     val lowered = name.toLowerCase
     val exact   = if lowered == loweredQuery then 0 else 1
     val prefix  = if lowered.startsWith(loweredQuery) then 0 else 1

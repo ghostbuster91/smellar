@@ -1,4 +1,4 @@
-package smiffer
+package smellar
 
 import cats.effect.{IO, Resource}
 import cats.syntax.all.*
@@ -109,7 +109,7 @@ object Commands:
   private def resolveProjectRepos(project: SmithyProject): Either[Throwable, List[Repository]] =
     project.repositoryUrls
       .traverse(url => Repositories.parse(url).leftMap(why => s"maven.repositories: $why"))
-      .leftMap(why => SmifferError.MalformedProjectConfig(project.configPath.toString, RuntimeException(why)))
+      .leftMap(why => SmellarError.MalformedProjectConfig(project.configPath.toString, RuntimeException(why)))
 
   /** Truncates to `limit`, telling the user on stderr when something was cut.
     *
@@ -121,7 +121,7 @@ object Commands:
     else
       IO.blocking(
         System.err.println(
-          s"[smiffer] showing $limit of ${shapes.length} results; use --limit to raise the cap"
+          s"[smellar] showing $limit of ${shapes.length} results; use --limit to raise the cap"
         )
       ).as(shapes.take(limit))
 
