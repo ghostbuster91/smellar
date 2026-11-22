@@ -155,19 +155,32 @@ individual validation events.
 nix develop          # sbt + JDK 21
 sbt test
 sbt assembly         # -> target/out/jvm/scala-3.9.0/smellar/smellar.jar
+
+nix build            # build through the flake (sandboxed, offline)
+nix flake check      # same, plus `sbt smellar/test` in the sandbox
 ```
 
 Built with Scala 3.9.0 on sbt 2, against `software.amazon.smithy:smithy-model`. The IDL output
 comes from Smithy's own `SmithyIdlModelSerializer` rather than a hand-written printer, so it stays
 correct as the Smithy spec grows.
 
-Dependencies are prefetched for the Nix build by a fixed-output derivation. After changing
-`build.sbt`, refresh its hash:
+Dependencies are prefetched for the Nix build from `scala.lock.json`, which pins every JAR and POM
+(including sbt itself and the sbt-assembly plugin) by URL and SHA-256. Each artifact is its own
+fixed-output derivation, so changing one dependency refetches one artifact rather than the whole
+cache. After changing `build.sbt` or `project/plugins.sbt`, regenerate it:
 
 ```sh
-nix build .#deps      # fails, printing the hash it got
-# paste that into depsHash in flake.nix
+SMELLAR_VERSION=0.1.0 nix run github:ghostbuster91/scala-cli-nix/sbt-support -- lock-sbt
 ```
+
+`SMELLAR_VERSION` matters: the lockfile records the jar path sbt will produce, and that path embeds
+the version, so it has to match the `version` in `flake.nix`. Locking also compiles the project
+once, because sbt's `Compile / mainClass` is a task rather than a setting.
+
+The Nix build runs real sbt 2 inside the sandbox against that locked toolchain — no network — and
+produces a thin jar plus a wrapper that puts each dependency on the classpath from its own store
+path. `sbt assembly` is still there for building a single distributable jar by hand; the Nix build
+just doesn't need it.
 
 ## Agent use
 
